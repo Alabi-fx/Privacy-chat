@@ -1,0 +1,8 @@
+
+SOCKSPort 9050
+ControlPort 9051
+DataDirectory ./tor_service
+CookieAuthentication 0
+DisableNetwork 0
+HiddenServiceDir ./tor_service/hidden/
+HiddenServicePort 80 127.0.0.1:7777
