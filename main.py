@@ -18,7 +18,7 @@ def banner():
    ██║   ██║   ██║██████╔╝    ██║     ███████║███████║   ██║
    ██║   ██║   ██║██╔══██╗    ██║     ██╔══██║██╔══██║   ██║
    ╚═╝    ╚═════╝ ╚═╝  ╚═╝     ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝
-           TOR ENCRYPTED P2P CHAT — NDU EDITION
+           TOR ENCRYPTED P2P CHAT — ALABI-FX EDITION
 """)
 
 banner()
