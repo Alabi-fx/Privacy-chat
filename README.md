@@ -46,7 +46,7 @@ pkg install python git tor nano -y
 
 
 
-git clone https://github.com/YOUR_USERNAME/privacy_chat.git
+git clone https://github.com/Alabi-fx/privacy_chat.git
 cd privacy_chat
 
 4. Install Python dependencies:
@@ -77,7 +77,7 @@ sudo apt install python3 python3-pip git tor -y
 
 
 
-git clone https://github.com/YOUR_USERNAME/privacy_chat.git
+git clone https://github.com/Alabi-fx/privacy_chat.git
 cd privacy_chat
 
 3. Install Python dependencies:
