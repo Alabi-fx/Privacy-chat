@@ -1,4 +1,4 @@
-# Privacy Chat - TOR Encrypted P2P Chat (NDU Edition)
+# Privacy Chat - TOR Encrypted P2P Chat (ALABI-FX EDITION)
 
 A secure peer-to-peer chat application over the TOR network. Works on Termux (Android) and Linux (PC).
 
@@ -49,11 +49,19 @@ pkg install python git tor nano -y
 git clone https://github.com/Alabi-fx/privacy_chat.git
 cd privacy_chat
 
-4. Install Python dependencies:
+4. Install Python dependencies for termux:
 
+# Update and install build essentials
+pkg update && pkg upgrade -y
+pkg install python git clang libffi libffi-dev openssl openssl-dev -y
 
+# Upgrade pip
+pip install --upgrade pip setuptools wheel
 
+# Install from requirements.txt
 pip install -r requirements.txt
+
+
 
 5. Run the app:
 
@@ -80,11 +88,19 @@ sudo apt install python3 python3-pip git tor -y
 git clone https://github.com/Alabi-fx/privacy_chat.git
 cd privacy_chat
 
-3. Install Python dependencies:
+3. Install Python dependencies for ubuntu/debian/kali:
+# Update system
+sudo apt update && sudo apt upgrade -y
 
+# Install dependencies
+sudo apt install python3 python3-pip python3-dev build-essential libffi-dev libssl-dev -y
 
+# Upgrade pip
+pip3 install --upgrade pip setuptools wheel
 
+# Install requirements
 pip3 install -r requirements.txt
+
 
 4. Run the app:
 

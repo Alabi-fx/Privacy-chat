@@ -1,4 +1,11 @@
-colorama
-cryptography
-pysocks
-stem
+# Terminal colors
+colorama==0.4.6
+
+# Cryptography (force pip to use pre-built wheels if available)
+cryptography==46.0.3 --only-binary=:all:
+
+# Socks support for Tor connection
+PySocks==1.7.1
+
+# Stem for Tor control
+stem==1.10.0
