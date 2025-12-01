@@ -51,23 +51,53 @@ if not username:
     username = get_username()
 
 # =====================================================
-#               RSA KEY GENERATION
+#               RSA KEY GENERATION + TOR
 # =====================================================
-if not os.path.exists("private.pem") or not os.path.exists("public.pem"):
-    print(Fore.YELLOW + "🔐 Generating RSA keys...")
-    key = rsa.generate_private_key(65537, 2048)
-    open("private.pem", "wb").write(key.private_bytes(
-        serialization.Encoding.PEM,
-        serialization.PrivateFormat.TraditionalOpenSSL,
-        serialization.NoEncryption()
-    ))
-    open("public.pem", "wb").write(key.public_key().public_bytes(
-        serialization.Encoding.PEM,
-        serialization.PublicFormat.SubjectPublicKeyInfo
-    ))
+import traceback
 
-private_key = serialization.load_pem_private_key(open("private.pem","rb").read(), None)
-public_key = open("public.pem","rb").read()
+try:
+    # Generate RSA keys if they don't exist
+    if not os.path.exists("private.pem") or not os.path.exists("public.pem"):
+        print(Fore.YELLOW + "🔐 Generating RSA keys...")
+        key = rsa.generate_private_key(
+            public_exponent=65537,
+            key_size=2048
+        )
+
+        # Save private key
+        with open("private.pem", "wb") as f:
+            f.write(key.private_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PrivateFormat.TraditionalOpenSSL,
+                encryption_algorithm=serialization.NoEncryption()
+            ))
+
+        # Save public key
+        with open("public.pem", "wb") as f:
+            f.write(key.public_key().public_bytes(
+                encoding=serialization.Encoding.PEM,
+                format=serialization.PublicFormat.SubjectPublicKeyInfo
+            ))
+
+    # Load RSA keys
+    private_key = serialization.load_pem_private_key(
+        open("private.pem", "rb").read(),
+        password=None
+    )
+    public_key = open("public.pem", "rb").read()
+
+    # Ensure Tor hidden service exists
+    if not os.path.exists("tor_service/hidden/hostname"):
+        print(Fore.CYAN + "Starting Tor service and generating Onion address...")
+        my_onion = start_tor()
+    else:
+        my_onion = open("tor_service/hidden/hostname").read().strip()
+
+except Exception as e:
+    print(Fore.RED + "❌ Error occurred during key generation or Tor setup!")
+    print(Fore.RED + str(e))
+    print(Fore.RED + traceback.format_exc())
+    input(Fore.GREEN + "Press Enter to continue or restart the app...")
 
 # =====================================================
 #            ENCRYPT / DECRYPT SHORT VERSION
@@ -167,6 +197,7 @@ def chat_mode(peer_onion, peer_pub):
         s.connect((peer_onion, 7777))
     except Exception as e:
         print(Fore.RED + f"Failed to connect: {e}")
+        input("Press Enter to return to main menu...")
         return
 
     def receiver():
@@ -178,27 +209,36 @@ def chat_mode(peer_onion, peer_pub):
                 try:
                     msg = dec(data)
                     print(Fore.CYAN + f"\nPeer: {msg}")
-                except Exception:
-                    print(Fore.RED + "\nReceived invalid message!")
-            except:
+                except Exception as e:
+                    print(Fore.RED + f"\nReceived invalid message: {e}")
+            except Exception as e:
+                print(Fore.RED + f"\nConnection error: {e}")
                 break
 
     threading.Thread(target=receiver, daemon=True).start()
 
-    print(Fore.GREEN + "Type your messages below (Ctrl+C to return to menu):")
+    print(Fore.GREEN + "Type your messages below (Ctrl+C to return to main menu)")
     while True:
         try:
             msg = input()
             if msg.strip() == "":
                 continue
             try:
-                s.send(enc(peer_pub.encode(), msg))
-            except Exception:
-                print(Fore.RED + "Failed to send message. Check peer key.")
+                # Ensure peer_pub is bytes before encrypting
+                pub_bytes = peer_pub.encode() if isinstance(peer_pub, str) else peer_pub
+                s.send(enc(pub_bytes, msg))
+            except Exception as e:
+                print(Fore.RED + f"Failed to send message: {e}")
         except KeyboardInterrupt:
             print(Fore.YELLOW + "\nReturning to main menu...\n")
-            s.close()
+            try:
+                s.close()
+            except:
+                pass
             break
+        except Exception as e:
+            print(Fore.RED + f"Unexpected error: {e}")
+            input("Press Enter to continue...")
 
 # =====================================================
 #                 MAIN MENU
