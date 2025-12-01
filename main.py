@@ -54,15 +54,10 @@ if not username:
 # =====================================================
 #                 AUTO-START TOR
 # =====================================================
-import os, time
+import os
+import time
 from colorama import Fore
-import rsa
-from cryptography.hazmat.primitives import serialization, hashes
-from cryptography.hazmat.primitives.asymmetric import padding
 
-# =========================
-# START TOR FUNCTION
-# =========================
 def start_tor():
     try:
         print(Fore.CYAN + "Starting Tor service...")
@@ -77,15 +72,18 @@ DisableNetwork 0
 HiddenServiceDir ./tor_service/hidden/
 HiddenServicePort 80 127.0.0.1:7777
 """
-        open("torrc", "w").write(torrc)
+        with open("torrc", "w") as f:
+            f.write(torrc)
+
         os.system("tor -f torrc &")
         time.sleep(6)
 
-        if not os.path.exists("tor_service/hidden/hostname"):
+        hostname_file = "tor_service/hidden/hostname"
+        if not os.path.exists(hostname_file):
             print(Fore.RED + "Tor failed to generate onion! Retrying...")
             time.sleep(4)
 
-        onion = open("tor_service/hidden/hostname").read().strip()
+        onion = open(hostname_file).read().strip()
         print(Fore.GREEN + f"Your Onion Address: {onion}\n")
         return onion
 
@@ -95,13 +93,36 @@ HiddenServicePort 80 127.0.0.1:7777
         input("Press Enter to continue or restart the app...")
         return None
 
-# =====================================================
-#               RSA KEY GENERATION + TOR
-# =====================================================
-import traceback
 
+# =========================
+# LOAD OR START TOR
+# =========================
+my_onion = None
 try:
-    # Generate RSA keys if they don't exist
+    hostname_file = "tor_service/hidden/hostname"
+    if os.path.exists(hostname_file):
+        my_onion = open(hostname_file).read().strip()
+    else:
+        my_onion = start_tor()
+except Exception as e:
+    print(Fore.RED + "❌ Error accessing Onion hostname!")
+    print(Fore.RED + str(e))
+    my_onion = start_tor()
+
+# =====================================================
+#              RSA KEY GENERATION + TOR
+# =====================================================
+from cryptography.hazmat.primitives.asymmetric import rsa
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+import os
+import time
+from colorama import Fore
+
+# =========================
+# GENERATE OR LOAD RSA KEYS
+# =========================
+try:
     if not os.path.exists("private.pem") or not os.path.exists("public.pem"):
         print(Fore.YELLOW + "🔐 Generating RSA keys...")
         key = rsa.generate_private_key(
@@ -124,42 +145,29 @@ try:
                 format=serialization.PublicFormat.SubjectPublicKeyInfo
             ))
 
-    # Load RSA keys
-    private_key = serialization.load_pem_private_key(
-        open("private.pem", "rb").read(),
-        password=None
-    )
-    public_key = open("public.pem", "rb").read()
+    # Load keys
+    with open("private.pem", "rb") as f:
+        private_key = serialization.load_pem_private_key(f.read(), password=None)
 
-    # Load or generate onion address
-    if not os.path.exists("tor_service/hidden/hostname"):
-        print(Fore.CYAN + "Starting Tor service and generating Onion address...")
-        my_onion = start_tor()
-    else:
-        my_onion = open("tor_service/hidden/hostname").read().strip()
+    with open("public.pem", "rb") as f:
+        public_key = f.read()
 
 except Exception as e:
-    print(Fore.RED + "❌ Error occurred during key generation or Tor setup!")
+    print(Fore.RED + "❌ Error generating/loading RSA keys!")
     print(Fore.RED + str(e))
-    print(Fore.RED + traceback.format_exc())
     input(Fore.GREEN + "Press Enter to continue or restart the app...")
 
-# =====================================================
-#            ENCRYPT / DECRYPT SHORT VERSION
-# =====================================================
-def enc(pub, msg):
-    k = serialization.load_pem_public_key(pub)
-    return k.encrypt(msg.encode(), padding.OAEP(
-        mgf=padding.MGF1(hashes.SHA256()),
-        algorithm=hashes.SHA256(),
-        label=None
-    ))
+# =========================
+# ENCRYPT / DECRYPT
+# =========================
+def enc(pub_bytes, msg):
+    pub = serialization.load_pem_public_key(pub_bytes)
+    return pub.encrypt(msg.encode(), padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),
+                                                  algorithm=hashes.SHA256(), label=None))
 
 def dec(cipher):
     return private_key.decrypt(cipher, padding.OAEP(
-        mgf=padding.MGF1(hashes.SHA256()),
-        algorithm=hashes.SHA256(),
-        label=None
+        mgf=padding.MGF1(hashes.SHA256()), algorithm=hashes.SHA256(), label=None
     )).decode()
 
 # =====================================================
