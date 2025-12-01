@@ -1,34 +1,47 @@
-# Privacy Chat - TOR Encrypted P2P Chat (ALABI-FX EDITION)
+Privacy Chat - TOR Encrypted P2P Chat (ALABI-FX EDITION) 🧅🔐
 
-A secure peer-to-peer chat application over the TOR network. Works on Termux (Android) and Linux (PC).
+A secure peer-to-peer chat app over the TOR network. Works on Termux (Android) and Linux (PC).
+
 
 ---
 
-## **Features**
+Features ✨
 
-- Generate your own Onion address automatically
-- Encrypted messaging using RSA
-- Save recent peers
-- Edit username
-- Error handling & Ctrl+C returns to main menu
-- View and delete chat history
+Generate your own Onion address automatically 🧅
+
+Encrypted messaging using RSA 🔑
+
+Save recent peers 📋
+
+Edit username ✏️
+
+Error handling & Ctrl+C returns to main menu ⏪
+
+View and delete chat history 🗑️
+
+
 
 ---
 
-## **Requirements**
+Requirements ⚙️
 
-- Python 3
-- Git
-- Tor
-- Python modules: `colorama`, `cryptography`, `pysocks`, `stem`
+Python 3 🐍
 
-Install Python modules via:
+Git
 
-```bash
-pip install -r requirements.txt   # Termux / Linux
+Tor 🧅
+
+Python modules: colorama, cryptography, pysocks, stem, rsa 🔑
 
 
-Installation & Setup
+> Note: Installing cryptography or rsa may require build tools on Termux/Linux.
+
+
+
+
+---
+
+Installation & Setup 💻📱
 
 Termux (Android)
 
@@ -39,31 +52,37 @@ Termux (Android)
 
 
 
-pkg update && pkg upgrade -y
-pkg install python git tor nano -y
+pkg update -y
+pkg upgrade -y
 
-3. Clone the repository:
+3. Install essentials:
+
+
+
+pkg install python tor git nano -y
+pkg install libffi libffi-dev openssl openssl-dev -y
+pkg install rust -y   # Required for cryptography build
+
+4. Upgrade pip:
+
+
+
+pip install --upgrade pip setuptools wheel
+
+5. Install Python modules:
+
+
+
+pip install colorama PySocks cryptography stem rsa
+
+6. Clone repository:
 
 
 
 git clone https://github.com/Alabi-fx/privacy_chat.git
 cd privacy_chat
 
-4. Install Python dependencies for termux:
-
-# Update and install build essentials
-pkg update && pkg upgrade -y
-pkg install python git clang libffi libffi-dev openssl openssl-dev -y
-
-# Upgrade pip
-pip install --upgrade pip setuptools wheel
-
-# Install from requirements.txt
-pip install -r requirements.txt
-
-
-
-5. Run the app:
+7. Run the app:
 
 
 
@@ -74,35 +93,34 @@ python main.py
 
 Linux / PC
 
-1. Install Python 3, Git, and Tor:
+1. Update system & install essentials:
 
 
 
-sudo apt update
+sudo apt update && sudo apt upgrade -y
 sudo apt install python3 python3-pip git tor -y
+sudo apt install python3-dev build-essential libffi-dev libssl-dev -y
 
-2. Clone the repository:
+2. Upgrade pip:
+
+
+
+pip3 install --upgrade pip setuptools wheel
+
+3. Install Python modules:
+
+
+
+pip3 install colorama PySocks cryptography stem rsa
+
+4. Clone repository:
 
 
 
 git clone https://github.com/Alabi-fx/privacy_chat.git
 cd privacy_chat
 
-3. Install Python dependencies for ubuntu/debian/kali:
-# Update system
-sudo apt update && sudo apt upgrade -y
-
-# Install dependencies
-sudo apt install python3 python3-pip python3-dev build-essential libffi-dev libssl-dev -y
-
-# Upgrade pip
-pip3 install --upgrade pip setuptools wheel
-
-# Install requirements
-pip3 install -r requirements.txt
-
-
-4. Run the app:
+5. Run the app:
 
 
 
@@ -111,7 +129,36 @@ python3 main.py
 
 ---
 
-Usage Guide
+🔄 Regenerate Keys Safely
+
+To ensure every user gets unique Onion & RSA keys (so no one shares the same keys 🧅🔑):
+
+1. Remove existing keys (if accidentally committed):
+
+
+
+rm private.pem
+rm public.pem
+rm -r tor_service/hidden/
+
+2. Run the app:
+
+
+
+python main.py       # Termux
+python3 main.py      # Linux
+
+3. The app will automatically generate new keys and Onion address ✅
+
+
+4. Share only your Onion + Public Key with peers. Never share private.pem 🔒
+
+
+
+
+---
+
+Usage Guide 📝
 
 1. Run the app.
 
@@ -125,30 +172,33 @@ Usage Guide
 4. Share your Onion address + Public Key with your friend.
 
 
-5. To start chat:
+5. Start chat:
 
-Enter new peer: input your friend's Onion + Public Key
+Enter new peer: input friend's Onion + Public Key
 
 Or select from recent peers
 
 
 
-6. Press Ctrl+C anytime to return to the main menu.
+6. Press Ctrl+C anytime to return to main menu ⏪
 
 
-7. View chat history or delete it anytime from the menu.
+7. View or delete chat history anytime from the menu 🗑️
 
 
 
 
 ---
 
-Important Notes
+Important Notes ⚠️
 
-Both users must have Tor running.
+Both users must have Tor running 🧅
 
-Onion addresses: .onion (16 or 56 characters).
+Onion addresses: .onion (16 or 56 characters)
 
-Never share your private key.
+Never share your private key 🔑
 
-Ensure Python dependencies are installed using requirements.txt.
+Make sure Python dependencies are installed
+
+Unique keys per user are mandatory for secure chat
+

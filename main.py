@@ -50,6 +50,51 @@ if not username:
     set_username()
     username = get_username()
 
+
+# =====================================================
+#                 AUTO-START TOR
+# =====================================================
+import os, time
+from colorama import Fore
+import rsa
+from cryptography.hazmat.primitives import serialization, hashes
+from cryptography.hazmat.primitives.asymmetric import padding
+
+# =========================
+# START TOR FUNCTION
+# =========================
+def start_tor():
+    try:
+        print(Fore.CYAN + "Starting Tor service...")
+        os.makedirs("tor_service/hidden", exist_ok=True)
+
+        torrc = """
+SOCKSPort 9050
+ControlPort 9051
+DataDirectory ./tor_service
+CookieAuthentication 0
+DisableNetwork 0
+HiddenServiceDir ./tor_service/hidden/
+HiddenServicePort 80 127.0.0.1:7777
+"""
+        open("torrc", "w").write(torrc)
+        os.system("tor -f torrc &")
+        time.sleep(6)
+
+        if not os.path.exists("tor_service/hidden/hostname"):
+            print(Fore.RED + "Tor failed to generate onion! Retrying...")
+            time.sleep(4)
+
+        onion = open("tor_service/hidden/hostname").read().strip()
+        print(Fore.GREEN + f"Your Onion Address: {onion}\n")
+        return onion
+
+    except Exception as e:
+        print(Fore.RED + "❌ Error occurred during Tor setup!")
+        print(Fore.RED + str(e))
+        input("Press Enter to continue or restart the app...")
+        return None
+
 # =====================================================
 #               RSA KEY GENERATION + TOR
 # =====================================================
@@ -86,7 +131,7 @@ try:
     )
     public_key = open("public.pem", "rb").read()
 
-    # Ensure Tor hidden service exists
+    # Load or generate onion address
     if not os.path.exists("tor_service/hidden/hostname"):
         print(Fore.CYAN + "Starting Tor service and generating Onion address...")
         my_onion = start_tor()
@@ -104,47 +149,18 @@ except Exception as e:
 # =====================================================
 def enc(pub, msg):
     k = serialization.load_pem_public_key(pub)
-    return k.encrypt(msg.encode(), padding.OAEP(mgf=padding.MGF1(hashes.SHA256()),
-                                               algorithm=hashes.SHA256(), label=None))
+    return k.encrypt(msg.encode(), padding.OAEP(
+        mgf=padding.MGF1(hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None
+    ))
 
 def dec(cipher):
     return private_key.decrypt(cipher, padding.OAEP(
-        mgf=padding.MGF1(hashes.SHA256()), algorithm=hashes.SHA256(), label=None
+        mgf=padding.MGF1(hashes.SHA256()),
+        algorithm=hashes.SHA256(),
+        label=None
     )).decode()
-
-# =====================================================
-#                 AUTO-START TOR
-# =====================================================
-def start_tor():
-    print(Fore.CYAN + "Starting Tor service...")
-    os.makedirs("tor_service/hidden", exist_ok=True)
-
-    torrc = """
-SOCKSPort 9050
-ControlPort 9051
-DataDirectory ./tor_service
-CookieAuthentication 0
-DisableNetwork 0
-HiddenServiceDir ./tor_service/hidden/
-HiddenServicePort 80 127.0.0.1:7777
-"""
-
-    open("torrc", "w").write(torrc)
-    os.system("tor -f torrc &")
-    time.sleep(6)
-
-    if not os.path.exists("tor_service/hidden/hostname"):
-        print(Fore.RED + "Tor failed to generate onion! Retrying...")
-        time.sleep(4)
-
-    onion = open("tor_service/hidden/hostname").read().strip()
-    print(Fore.GREEN + f"Your Onion Address: {onion}\n")
-    return onion
-
-try:
-    my_onion = open("tor_service/hidden/hostname").read().strip()
-except:
-    my_onion = start_tor()
 
 # =====================================================
 #              PEER HELPERS
